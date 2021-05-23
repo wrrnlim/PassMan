@@ -19,7 +19,7 @@ kdf = PBKDF2HMAC(
     backend=default_backend()
 )
 
-key = base64.urlsafe_b64encode(kdf.derive(password))
+key = base64.urlsafe_b64encode(kdf.derive(password)) # passman should create key from masterpassword everytime instead of storing this key. Masterpass is only known and entered by the user on login and is stored with hash, so the original masterpass cannot be known unless user enters it.
 print('Key:',key)
 
 message = 'hello world'
