@@ -123,18 +123,15 @@ class GUI(Frame):
         uname = self.uname.get()
         password = hashPassword(self.password.get())
         storeDB('MasterPassword',uname,password)
-        for widget in self.winfo_children(): # remove all widgets and remake them
-            widget.destroy()
+        self.clearWidgets()
         self.loginUI()
 
     def cancel(self):
-        for widget in self.winfo_children(): # remove all widgets and remake them
-            widget.destroy()
+        self.clearWidgets()
         self.loginUI()
     
     def loggedInUI(self):
-        for widget in self.winfo_children(): # remove all widgets and remake them
-            widget.destroy()
+        self.clearWidgets()
         
         # Title
         self.title = Label(self, text='Password Manager', font=('Century Gothic', 20))
@@ -160,10 +157,10 @@ class GUI(Frame):
         # Show password
         self.pwLabel = Label(self, text='Password:', font=('Calibri',12))
         self.pwLabel.grid(row=6,sticky='w',padx=10,columnspan=2)
-        self.password = Entry(self, width=28,show='\u2022') # show password as bullets
-        self.password.grid(row=7,pady=(0,10),padx=(30,0),columnspan=2,sticky='w')
+        self.showPass = Entry(self, width=28,show='\u2022') # show password as bullets
+        self.showPass.grid(row=7,pady=(0,10),padx=(30,0),columnspan=2,sticky='w')
         # Copy password
-        self.copyBut = Button(self,text='Copy', command=self.copy, width=5,bg='#ffff80',relief=GROOVE)
+        self.copyBut = Button(self,text='Show', command=self.show, width=5,bg='#ffff80',relief=GROOVE)
         self.copyBut.grid(row=7,column=1,padx=(0,30),sticky='e')
 
         # Seperator
@@ -171,16 +168,34 @@ class GUI(Frame):
         self.line.grid(row=8,sticky='we',columnspan=2)
 
         # Create Account Button
-        self.createAccBut = Button(self,text='Create Account', command=self.newAccountUI, width=15,bg='#ffff80',relief=GROOVE)
+        self.createAccBut = Button(self,text='Logout', command=self.logout, width=15,bg='#ffff80',relief=GROOVE)
         self.createAccBut.grid(row=9,pady=10,padx=(20,0),sticky='w',columnspan=2)
 
         # Login Button
-        self.loginBut = Button(self,text='Login', command=self.loginButton, width=15,bg='#ffff80',relief=GROOVE)
+        self.loginBut = Button(self,text='Copy', command=self.copy, width=15,bg='#ffff80',relief=GROOVE)
         self.parent.bind('<Return>', self.enter) # makes enter key press the login button
         self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
-
+    def show(self):
+        if self.showPass.config()['show'][4] == '•': # returns ('show', 'show', 'Show', '', '•')
+            self.showPass.config(show='')
+        else: self.showPass.config(show='•')
+        
     def copy(self):
-        pass
+        text = self.showPass.get()
+        print(text)
+        # copy to clipboard
+        self.clipboard_clear()
+        self.clipboard_append(text)
+        self.update()
+
+    def logout(self):
+        self.clearWidgets()
+        self.loggedInUI()
+
+    def clearWidgets(self):
+        for widget in self.winfo_children(): # remove all widgets and remake them
+            widget.destroy()
+
 
 def main():
     root = tk.Tk()
