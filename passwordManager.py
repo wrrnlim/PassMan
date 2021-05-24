@@ -167,14 +167,19 @@ class GUI(Frame):
         self.line = Separator(self,orient='horizontal')
         self.line.grid(row=8,sticky='we',columnspan=2)
 
-        # Create Account Button
+        # Logout button
         self.createAccBut = Button(self,text='Logout', command=self.logout, width=15,bg='#ffff80',relief=GROOVE)
         self.createAccBut.grid(row=9,pady=10,padx=(20,0),sticky='w',columnspan=2)
 
-        # Login Button
+        # Copy button
         self.loginBut = Button(self,text='Copy', command=self.copy, width=15,bg='#ffff80',relief=GROOVE)
         self.parent.bind('<Return>', self.enter) # makes enter key press the login button
         self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
+
+        # Add new button
+        self.addBut = Button(self,text='Add new', command=self.addNew,bg='#ffff80',relief=GROOVE)
+        self.addBut.grid(row=10,pady=(0,10),padx=20,sticky='we',columnspan=2)
+    
     def show(self):
         if self.showPass.config()['show'][4] == '•': # returns ('show', 'show', 'Show', '', '•')
             self.showPass.config(show='')
@@ -190,11 +195,15 @@ class GUI(Frame):
 
     def logout(self):
         self.clearWidgets()
-        self.loggedInUI()
+        self.loginUI()
+        # forget master password
 
     def clearWidgets(self):
         for widget in self.winfo_children(): # remove all widgets and remake them
             widget.destroy()
+    
+    def addNew(self):
+        pass
 
 
 def main():
