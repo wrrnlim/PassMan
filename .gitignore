@@ -1,3 +1,7 @@
 
 db/passwords.db
 db/passwords.db
+<<<<<<< Updated upstream
+=======
+*.db
+>>>>>>> Stashed changes
