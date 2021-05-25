@@ -1,6 +1,6 @@
 #
 # Password Manager by Warren Lim
-version = '1.1.1'
+version = '1.1.2'
 
 # GUI inports
 import tkinter as tk
