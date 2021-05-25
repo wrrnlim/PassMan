@@ -1,6 +1,6 @@
 #
 # Password Manager by Warren Lim
-version = '1.0.0-beta'
+version = '1.0.1'
 
 # GUI inports
 import tkinter as tk
@@ -65,10 +65,10 @@ class GUI(Frame):
 
         # Login Button
         self.loginBut = Button(self,text='Login', command=self.loginButton, width=15,bg='#ffff80',relief=GROOVE)
-        self.parent.bind('<Return>', self.enter) # makes enter key press the login button
+        self.parent.bind('<Return>', self.loginEnter) # makes enter key press the login button
         self.loginBut.grid(row=7,column=1,pady=10,padx=(0,20),sticky='w')
 
-    def enter(self, event):
+    def loginEnter(self, event):
         # make enter key press Go button
         self.loginButton()
 
@@ -130,6 +130,12 @@ class GUI(Frame):
         self.createBut = Button(self,text='Create', command=self.create, width=15,bg='#ffff80',relief=GROOVE)
         self.createBut.grid(row=7,column=1,pady=10,padx=(0,20),sticky='w')
 
+        self.parent.bind('<Return>', self.newAccEnter) # bind enter to button
+
+    def newAccEnter(self, event):
+        # make enter key press Go button
+        self.create()
+
     def create(self):
         uname = self.uname.get()
         password = hashPassword(self.password.get())
@@ -154,14 +160,12 @@ class GUI(Frame):
 
         # Retrieve all services
         records = getServices(self.user)
-        print(records)
 
         # Choose Service
         self.serviceLabel = Label(self, text='Choose a service:', font=('Calibri',12))
         self.serviceLabel.grid(row=2,sticky='w',padx=10,columnspan=2)
         self.service = StringVar(self)
         services = list(set(records[i][0] for i in range(len(records)))) # get all services and remove duplicates
-        print('services',services)
         self.serviceList = Combobox(self, state='readonly',textvariable=self.service, values=services, width=32)
         self.serviceList.grid(row=3,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
         self.serviceList.bind('<<ComboboxSelected>>', self.retrieve)
@@ -241,7 +245,6 @@ class GUI(Frame):
         except:
             self.unameLabel.config(text='An account with this username \nalready exists for this service',fg='red')
             print('Key error')
-
         
 
     def newEntryUI(self):
@@ -284,10 +287,16 @@ class GUI(Frame):
         self.createAccBut = Button(self,text='Cancel', command=self.newEntryCancel, width=15,bg='#ffff80',relief=GROOVE)
         self.createAccBut.grid(row=9,pady=10,padx=(20,0),sticky='w',columnspan=2)
 
-        # Copy button
+        # Enter button
         self.loginBut = Button(self,text='Enter', command=self.addNew, width=15,bg='#ffff80',relief=GROOVE)
         self.parent.bind('<Return>', self.enter) # makes enter key press the login button
         self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
+
+        self.parent.bind('<Return>', self.addNewEnter) # bind enter to button
+
+    def addNewEnter(self, event):
+        # make enter key press Go button
+        self.addNew()
 
     def newEntryCancel(self):
         self.clearWidgets()
