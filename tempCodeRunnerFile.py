@@ -1,1 +1,1 @@
-e
+self.event_generate('<<ComboboxSelected>>')

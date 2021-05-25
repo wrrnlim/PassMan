@@ -54,3 +54,28 @@ def hashPassword(password):
     hash = hash.hexdigest()
     print(hash)
     return hash
+
+def retrieveDB(service):
+    db = sqlite3.connect(database)
+    c = db.cursor()
+    c.execute('''
+        SELECT *
+        FROM passwords
+        WHERE service = :service
+        AND service <> 'MasterPassword'
+    ''',{'service':service})
+    records = c.fetchall()
+    db.close()
+    return records
+
+def getServices():
+    db = sqlite3.connect(database)
+    c = db.cursor()
+    c.execute('''
+        SELECT service
+        FROM passwords
+        WHERE service <> 'MasterPassword'
+    ''')
+    services = c.fetchall()
+    db.close()
+    return services

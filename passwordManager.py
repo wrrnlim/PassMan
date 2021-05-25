@@ -1,13 +1,22 @@
 #
 # Password Manager by Warren Lim
-version = '0.0.2-test'
+version = '1.0.0-beta'
 
+# GUI inports
 import tkinter as tk
 from tkinter import Frame, Label, Entry, Button, BOTH, END, NORMAL, StringVar
-from tkinter.constants import GROOVE
+from tkinter.constants import GROOVE, SEL_LAST
 from tkinter.ttk import Combobox, Separator 
 from passmanFunctions import *
 import ctypes
+
+# encryption imports
+from cryptography.fernet import Fernet
+import base64
+import os
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class GUI(Frame):
   
@@ -90,6 +99,7 @@ class GUI(Frame):
                     self.newAccountUI() # go to new account screen
             if status == 0: # login successful
                 print('login successful')
+                self.masterPassword = password # store master password
                 self.loggedInUI()
             if status == -2: # login unsuccessful
                 print('invalid password')
@@ -141,53 +151,62 @@ class GUI(Frame):
         self.version = Label(self, text='© Warren Lim 2021 | version %s'%version,font=('Calibri', 8))
         self.version.grid(row=1,pady=(0,10),sticky='n',columnspan=2)
 
+        # Retrieve all services
+        records = getServices()
+        print(records)
+
         # Choose Service
         self.serviceLabel = Label(self, text='Choose a service:', font=('Calibri',12))
         self.serviceLabel.grid(row=2,sticky='w',padx=10,columnspan=2)
         self.service = StringVar(self)
-        self.serviceList = Combobox(self, state='readonly',textvariable=self.service, values=[], width=32)
+        self.serviceList = Combobox(self, state='readonly',textvariable=self.service, values=[records[i][0] for i in range(len(records))], width=32)
         self.serviceList.grid(row=3,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
+        self.serviceList.bind('<<ComboboxSelected>>', self.retrieve)
 
         # Show username
         self.unameLabel = Label(self, text='Username:', font=('Calibri',12))
         self.unameLabel.grid(row=4,sticky='w',padx=10,columnspan=2)
-        self.uname = Entry(self, width=35)
-        self.uname.grid(row=5,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
+        self.username = StringVar(self)
+        self.unameList = Combobox(self, state='readonly',textvariable=self.username, values=[], width=32)
+        self.unameList.grid(row=5,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
 
-        # Show password
+        # Retrieved password
         self.pwLabel = Label(self, text='Password:', font=('Calibri',12))
         self.pwLabel.grid(row=6,sticky='w',padx=10,columnspan=2)
         self.showPass = Entry(self, width=28,show='\u2022') # show password as bullets
         self.showPass.grid(row=7,pady=(0,10),padx=(30,0),columnspan=2,sticky='w')
-        # Copy password
-        self.copyBut = Button(self,text='Show', command=self.show, width=5,bg='#ffff80',relief=GROOVE)
-        self.copyBut.grid(row=7,column=1,padx=(0,30),sticky='e')
+        # Show password
+        self.showBut = Button(self,text='Show', command=lambda:self.show(self.showPass), width=5,bg='#ffff80',relief=GROOVE)
+        self.showBut.grid(row=7,column=1,padx=(0,30),pady=10,sticky='e')
+
+        # Retrieve Button
+        # self.retBut = Button(self,text='Retrieve', command=self.showPassword, width=5,bg='#ffff80',relief=GROOVE)
+        # self.retBut.grid(row=8,pady=(0,10),padx=20,sticky='we',columnspan=2)
 
         # Seperator
         self.line = Separator(self,orient='horizontal')
-        self.line.grid(row=8,sticky='we',columnspan=2)
+        self.line.grid(row=9,sticky='we',columnspan=2)
 
         # Logout button
         self.createAccBut = Button(self,text='Logout', command=self.logout, width=15,bg='#ffff80',relief=GROOVE)
-        self.createAccBut.grid(row=9,pady=10,padx=(20,0),sticky='w',columnspan=2)
+        self.createAccBut.grid(row=10,pady=10,padx=(20,0),sticky='w',columnspan=2)
 
         # Copy button
         self.loginBut = Button(self,text='Copy', command=self.copy, width=15,bg='#ffff80',relief=GROOVE)
         self.parent.bind('<Return>', self.enter) # makes enter key press the login button
-        self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
+        self.loginBut.grid(row=10,column=1,pady=10,padx=(0,20),sticky='w')
 
         # Add new button
-        self.addBut = Button(self,text='Add new', command=self.addNew,bg='#ffff80',relief=GROOVE)
-        self.addBut.grid(row=10,pady=(0,10),padx=20,sticky='we',columnspan=2)
+        self.addBut = Button(self,text='Add new', command=self.newEntryUI,bg='#ffff80',relief=GROOVE)
+        self.addBut.grid(row=11,pady=(0,10),padx=20,sticky='we',columnspan=2)
     
-    def show(self):
-        if self.showPass.config()['show'][4] == '•': # returns ('show', 'show', 'Show', '', '•')
-            self.showPass.config(show='')
-        else: self.showPass.config(show='•')
+    def show(self,widget):
+        if widget.config()['show'][4] == '•': # returns ('show', 'show', 'Show', '', '•')
+            widget.config(show='')
+        else: widget.config(show='•')
         
     def copy(self):
         text = self.showPass.get()
-        print(text)
         # copy to clipboard
         self.clipboard_clear()
         self.clipboard_append(text)
@@ -203,8 +222,112 @@ class GUI(Frame):
             widget.destroy()
     
     def addNew(self):
-        pass
 
+        key = self.createKey()
+        
+        # encrypt password
+        service = self.serviceEntry.get().upper()
+        username = self.uname.get()
+        passwordTxt = self.passTxt.get()
+
+        f = Fernet(key)
+        passwordEncrypted = f.encrypt(passwordTxt.encode())
+        try:
+            storeDB(service, username, passwordEncrypted)
+            self.loggedInUI()
+        except:
+            self.unameLabel.config(text='An account with this username \nalready exists for this service',fg='red')
+            print('Key error')
+
+        
+
+    def newEntryUI(self):
+        self.clearWidgets()
+        
+        # Title
+        self.title = Label(self, text='New Entry', font=('Century Gothic', 20))
+        self.title.grid(row=0,columnspan=2, padx=10)
+
+        # Version
+        self.version = Label(self, text='© Warren Lim 2021 | version %s'%version,font=('Calibri', 8))
+        self.version.grid(row=1,pady=(0,10),sticky='n',columnspan=2)
+
+        # Service/Website
+        self.serviceLabel = Label(self, text='Service/Website:', font=('Calibri',12))
+        self.serviceLabel.grid(row=2,sticky='w',padx=10,columnspan=2)
+        self.serviceEntry = Entry(self, width=35)
+        self.serviceEntry.grid(row=3,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
+
+        # Username
+        self.unameLabel = Label(self, text='Username:', font=('Calibri',12))
+        self.unameLabel.grid(row=4,sticky='w',padx=10,columnspan=2)
+        self.uname = Entry(self, width=35)
+        self.uname.grid(row=5,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
+
+        # Password
+        self.pwLabel = Label(self, text='Password:', font=('Calibri',12))
+        self.pwLabel.grid(row=6,sticky='w',padx=10,columnspan=2)
+        self.passTxt = Entry(self, width=28,show='\u2022') # show password as bullets
+        self.passTxt.grid(row=7,pady=(0,10),padx=(30,0),columnspan=2,sticky='w')
+        # Show password
+        self.copyBut = Button(self,text='Show', command=lambda:self.show(self.passTxt), width=5,bg='#ffff80',relief=GROOVE)
+        self.copyBut.grid(row=7,column=1,padx=(0,30),sticky='e')
+
+        # Seperator
+        self.line = Separator(self,orient='horizontal')
+        self.line.grid(row=8,sticky='we',columnspan=2)
+
+        # Cancel button
+        self.createAccBut = Button(self,text='Cancel', command=self.newEntryCancel, width=15,bg='#ffff80',relief=GROOVE)
+        self.createAccBut.grid(row=9,pady=10,padx=(20,0),sticky='w',columnspan=2)
+
+        # Copy button
+        self.loginBut = Button(self,text='Enter', command=self.addNew, width=15,bg='#ffff80',relief=GROOVE)
+        self.parent.bind('<Return>', self.enter) # makes enter key press the login button
+        self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
+
+    def newEntryCancel(self):
+        self.clearWidgets()
+        self.loggedInUI()
+
+    def retrieve(self,event): # populates username dropdown
+        service = self.service.get()
+        self.records = retrieveDB(service)
+        print(self.records)
+        self.unameList.config(values=[i[1] for i in self.records]) # gets all usernames
+        self.unameList.current(0)
+        self.unameList.bind('<<ComboboxSelected>>', self.showPassword)
+        self.unameList.event_generate('<<ComboboxSelected>>') # force event for default combobox value
+    
+    def showPassword(self,event): # shows password when username is selected
+        current = self.unameList.current()
+        if current != -1:
+            i = current
+            encryptedPass = self.records[i][2]
+
+            # decrypt password
+            key = self.createKey()
+            f = Fernet(key)
+            decryptedPass = f.decrypt(encryptedPass)
+            passwordTxt = decryptedPass.decode()
+
+            self.showPass.delete(0, END) # delete entries from previous runs
+            self.showPass.insert(0,passwordTxt) # insert password
+
+    def createKey(self):
+        # create key from masterpass
+        password = self.masterPassword.encode()
+        salt = b'w\tN\xd8\xf1[k\x97\xc3=\xc9\x90k\xde\xe8\xad'
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256,
+            length=32,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+
+        key = base64.urlsafe_b64encode(kdf.derive(password))
+        return key
 
 def main():
     root = tk.Tk()
