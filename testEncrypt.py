@@ -32,3 +32,5 @@ f2 = Fernet(key)
 decryptedMsg = f2.decrypt(encryptedMsg)
 msg = decryptedMsg.decode()
 print('The message was:',msg)
+
+

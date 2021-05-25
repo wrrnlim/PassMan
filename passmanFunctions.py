@@ -11,6 +11,7 @@ def createDB():
             service text,
             username text,
             password text,
+            account text,
             PRIMARY KEY (service,username)
         );
     ''')
@@ -39,13 +40,13 @@ def checkMaster(username, password):
         return 0 # login successful
     else: return -2 # login unsuccessful
 
-def storeDB(service, username, password):
+def storeDB(service, username, password, account):
     db = sqlite3.connect(database)
     c = db.cursor()
     c.execute('''
         INSERT INTO passwords
-        VALUES (:service, :username, :password)
-    ''',{'service':service,'username':username,'password':password})
+        VALUES (:service, :username, :password, :account)
+    ''',{'service':service,'username':username,'password':password, 'account':account})
     db.commit()
     db.close()
 
@@ -55,7 +56,7 @@ def hashPassword(password):
     print(hash)
     return hash
 
-def retrieveDB(service):
+def retrieveDB(service, account):
     db = sqlite3.connect(database)
     c = db.cursor()
     c.execute('''
@@ -63,19 +64,21 @@ def retrieveDB(service):
         FROM passwords
         WHERE service = :service
         AND service <> 'MasterPassword'
-    ''',{'service':service})
+        AND account = :account
+    ''',{'service':service,'account':account})
     records = c.fetchall()
     db.close()
     return records
 
-def getServices():
+def getServices(account):
     db = sqlite3.connect(database)
     c = db.cursor()
     c.execute('''
         SELECT service
         FROM passwords
         WHERE service <> 'MasterPassword'
-    ''')
+        AND account = :account
+    ''',{'account':account})
     services = c.fetchall()
     db.close()
     return services

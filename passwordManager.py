@@ -100,6 +100,7 @@ class GUI(Frame):
             if status == 0: # login successful
                 print('login successful')
                 self.masterPassword = password # store master password
+                self.user = uname # store passman user
                 self.loggedInUI()
             if status == -2: # login unsuccessful
                 print('invalid password')
@@ -132,7 +133,7 @@ class GUI(Frame):
     def create(self):
         uname = self.uname.get()
         password = hashPassword(self.password.get())
-        storeDB('MasterPassword',uname,password)
+        storeDB('MasterPassword',uname,password,uname)
         self.clearWidgets()
         self.loginUI()
 
@@ -152,14 +153,16 @@ class GUI(Frame):
         self.version.grid(row=1,pady=(0,10),sticky='n',columnspan=2)
 
         # Retrieve all services
-        records = getServices()
+        records = getServices(self.user)
         print(records)
 
         # Choose Service
         self.serviceLabel = Label(self, text='Choose a service:', font=('Calibri',12))
         self.serviceLabel.grid(row=2,sticky='w',padx=10,columnspan=2)
         self.service = StringVar(self)
-        self.serviceList = Combobox(self, state='readonly',textvariable=self.service, values=[records[i][0] for i in range(len(records))], width=32)
+        services = list(set(records[i][0] for i in range(len(records)))) # get all services and remove duplicates
+        print('services',services)
+        self.serviceList = Combobox(self, state='readonly',textvariable=self.service, values=services, width=32)
         self.serviceList.grid(row=3,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
         self.serviceList.bind('<<ComboboxSelected>>', self.retrieve)
 
@@ -233,7 +236,7 @@ class GUI(Frame):
         f = Fernet(key)
         passwordEncrypted = f.encrypt(passwordTxt.encode())
         try:
-            storeDB(service, username, passwordEncrypted)
+            storeDB(service, username, passwordEncrypted, self.user)
             self.loggedInUI()
         except:
             self.unameLabel.config(text='An account with this username \nalready exists for this service',fg='red')
@@ -292,7 +295,7 @@ class GUI(Frame):
 
     def retrieve(self,event): # populates username dropdown
         service = self.service.get()
-        self.records = retrieveDB(service)
+        self.records = retrieveDB(service,self.user)
         print(self.records)
         self.unameList.config(values=[i[1] for i in self.records]) # gets all usernames
         self.unameList.current(0)
@@ -316,7 +319,7 @@ class GUI(Frame):
 
     def createKey(self):
         # create key from masterpass
-        password = self.masterPassword.encode()
+        password = self.masterPassword.encode() + self.user.encode()
         salt = b'w\tN\xd8\xf1[k\x97\xc3=\xc9\x90k\xde\xe8\xad'
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256,
