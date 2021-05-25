@@ -1,4 +1,7 @@
-import sqlite3, hashlib
+import sqlite3, hashlib, os
+
+if not os.path.exists('db'): # make folder if it does not exists
+    os.makedirs('db')
 
 database = 'db\passwords.db'
 

@@ -1,6 +1,6 @@
 #
 # Password Manager by Warren Lim
-version = '1.0.1'
+version = '1.1.1'
 
 # GUI inports
 import tkinter as tk
@@ -200,7 +200,6 @@ class GUI(Frame):
 
         # Copy button
         self.loginBut = Button(self,text='Copy', command=self.copy, width=15,bg='#ffff80',relief=GROOVE)
-        self.parent.bind('<Return>', self.enter) # makes enter key press the login button
         self.loginBut.grid(row=10,column=1,pady=10,padx=(0,20),sticky='w')
 
         # Add new button
@@ -236,15 +235,29 @@ class GUI(Frame):
         service = self.serviceEntry.get().upper()
         username = self.uname.get()
         passwordTxt = self.passTxt.get()
-
-        f = Fernet(key)
-        passwordEncrypted = f.encrypt(passwordTxt.encode())
-        try:
-            storeDB(service, username, passwordEncrypted, self.user)
-            self.loggedInUI()
-        except:
-            self.unameLabel.config(text='An account with this username \nalready exists for this service',fg='red')
-            print('Key error')
+        if service:
+            self.serviceLabel.config(fg='black')
+        if username:
+            self.unameLabel.config(fg='black')
+        if passwordTxt:
+            self.pwLabel.config(fg='black')
+        if service and username and passwordTxt:
+            # encrypt and store
+            f = Fernet(key)
+            passwordEncrypted = f.encrypt(passwordTxt.encode())
+            try:
+                storeDB(service, username, passwordEncrypted, self.user)
+                self.loggedInUI()
+            except:
+                self.unameLabel.config(text='An account with this username \nalready exists for this service',fg='red')
+                print('Key error')
+        else:
+            if not service:
+                self.serviceLabel.config(fg='red')
+            if not username:
+                self.unameLabel.config(fg='red')
+            if not passwordTxt:
+                self.pwLabel.config(fg='red')
         
 
     def newEntryUI(self):
@@ -289,7 +302,6 @@ class GUI(Frame):
 
         # Enter button
         self.loginBut = Button(self,text='Enter', command=self.addNew, width=15,bg='#ffff80',relief=GROOVE)
-        self.parent.bind('<Return>', self.enter) # makes enter key press the login button
         self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
 
         self.parent.bind('<Return>', self.addNewEnter) # bind enter to button
