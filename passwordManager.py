@@ -166,6 +166,7 @@ class GUI(Frame):
         self.serviceLabel.grid(row=2,sticky='w',padx=10,columnspan=2)
         self.service = StringVar(self)
         services = list(set(records[i][0] for i in range(len(records)))) # get all services and remove duplicates
+        services.sort() # sort list
         self.serviceList = Combobox(self, state='readonly',textvariable=self.service, values=services, width=32)
         self.serviceList.grid(row=3,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
         self.serviceList.bind('<<ComboboxSelected>>', self.retrieve)
