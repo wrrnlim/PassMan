@@ -1,6 +1,6 @@
-#
 # Password Manager by Warren Lim
-version = '2.0.0'
+
+version = '2.1.0'
 
 # GUI inports
 import tkinter as tk
@@ -13,7 +13,6 @@ import ctypes
 # encryption imports
 from cryptography.fernet import Fernet
 import base64
-import os
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -24,8 +23,7 @@ class GUI(Frame):
         Frame.__init__(self, parent)   
                  
         self.parent = parent
-        self.loginUI()
-                
+        self.loginUI()    
         
     def loginUI(self):
 
