@@ -85,3 +85,33 @@ def getServices(account):
     services = c.fetchall()
     db.close()
     return services
+
+def updateDB(account, service, username, password):
+    db = sqlite3.connect(database)
+    c = db.cursor()
+    c.execute('''
+        UPDATE passwords
+        SET password = :password
+        WHERE service = :service
+        AND username = :username
+        AND account = :account
+    ''',{'password':password,'service':service,'username':username,'account':account})
+    db.commit()
+    db.close()
+
+def deleteEntry(account, service, username):
+    db = sqlite3.connect(database)
+    c = db.cursor()
+    try:
+        c.execute('''
+            DELETE FROM passwords
+            WHERE service = :service
+            AND username = :username
+            AND account = :account
+        ''',{'service':service,'username':username,'account':account})
+        db.commit()
+    except:
+        return -1
+    db.close()
+    return 0
+    

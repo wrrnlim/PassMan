@@ -5,7 +5,7 @@ version = '1.1.2'
 # GUI inports
 import tkinter as tk
 from tkinter import Frame, Label, Entry, Button, BOTH, END, NORMAL, StringVar
-from tkinter.constants import GROOVE, SEL_LAST
+from tkinter.constants import DISABLED, GROOVE, SEL_LAST
 from tkinter.ttk import Combobox, Separator 
 from passmanFunctions import *
 import ctypes
@@ -187,21 +187,25 @@ class GUI(Frame):
         self.showBut = Button(self,text='Show', command=lambda:self.show(self.showPass), width=5,bg='#ffff80',relief=GROOVE)
         self.showBut.grid(row=7,column=1,padx=(0,30),pady=10,sticky='e')
 
-        # Retrieve Button
-        # self.retBut = Button(self,text='Retrieve', command=self.showPassword, width=5,bg='#ffff80',relief=GROOVE)
-        # self.retBut.grid(row=8,pady=(0,10),padx=20,sticky='we',columnspan=2)
-
         # Seperator
         self.line = Separator(self,orient='horizontal')
-        self.line.grid(row=9,sticky='we',columnspan=2)
+        self.line.grid(row=8,sticky='we',columnspan=2)
 
         # Logout button
         self.createAccBut = Button(self,text='Logout', command=self.logout, width=15,bg='#ffff80',relief=GROOVE)
-        self.createAccBut.grid(row=10,pady=10,padx=(20,0),sticky='w',columnspan=2)
+        self.createAccBut.grid(row=9,pady=(10,0),padx=(20,0),sticky='w',columnspan=2)
 
         # Copy button
         self.loginBut = Button(self,text='Copy', command=self.copy, width=15,bg='#ffff80',relief=GROOVE)
-        self.loginBut.grid(row=10,column=1,pady=10,padx=(0,20),sticky='w')
+        self.loginBut.grid(row=9,column=1,pady=(10,0),padx=(0,20),sticky='w')
+
+        # Edit Button
+        self.editBut = Button(self,text='Edit', command=lambda: self.editUI(self.serviceList.get(),self.unameList.get()), width=15,bg='#ffff80',relief=GROOVE)
+        self.editBut.grid(row=10,pady=10,padx=(20,0),sticky='w',columnspan=2)
+
+        # Delete Button
+        self.editBut = Button(self,text='Delete', command=self.deleteEntry, width=15,bg='#ffff80',relief=GROOVE)
+        self.editBut.grid(row=10,column=1,pady=10,padx=(0,20),sticky='w')
 
         # Add new button
         self.addBut = Button(self,text='Add new', command=self.newEntryUI,bg='#ffff80',relief=GROOVE)
@@ -228,11 +232,14 @@ class GUI(Frame):
         for widget in self.winfo_children(): # remove all widgets and remake them
             widget.destroy()
     
-    def addNew(self):
-
+    def encryptPassword(self,passwordTxt):
         key = self.createKey()
-        
-        # encrypt password
+        f = Fernet(key)
+        passwordEncrypted = f.encrypt(passwordTxt.encode())
+        return passwordEncrypted
+
+    def addNew(self):
+        # get input
         service = self.serviceEntry.get().upper()
         username = self.uname.get()
         passwordTxt = self.passTxt.get()
@@ -244,8 +251,7 @@ class GUI(Frame):
             self.pwLabel.config(fg='black')
         if service and username and passwordTxt:
             # encrypt and store
-            f = Fernet(key)
-            passwordEncrypted = f.encrypt(passwordTxt.encode())
+            passwordEncrypted = self.encryptPassword(passwordTxt)
             try:
                 storeDB(service, username, passwordEncrypted, self.user)
                 self.loggedInUI()
@@ -260,6 +266,18 @@ class GUI(Frame):
             if not passwordTxt:
                 self.pwLabel.config(fg='red')
         
+    def deleteEntry(self):
+        service = self.serviceList.get()
+        username = self.unameList.get()
+        account = self.user
+        deleteEntry(account,service,username)
+
+        # delete input in entry boxes/combobox
+        self.serviceList.delete(0,END)
+        self.unameList.delete(0,END)
+        self.showPass.delete(0,END)
+
+        self.loggedInUI()
 
     def newEntryUI(self):
         self.clearWidgets()
@@ -353,6 +371,72 @@ class GUI(Frame):
 
         key = base64.urlsafe_b64encode(kdf.derive(password))
         return key
+
+    def editUI(self, service, username):
+        
+        if not service and not username:
+            self.serviceLabel.config(fg='red')
+            return
+
+        self.clearWidgets()
+
+        # Title
+        self.title = Label(self, text='Edit Entry', font=('Century Gothic', 20))
+        self.title.grid(row=0,columnspan=2, padx=10)
+
+        # Version
+        self.version = Label(self, text='© Warren Lim 2021 | version %s'%version,font=('Calibri', 8))
+        self.version.grid(row=1,pady=(0,10),sticky='n',columnspan=2)
+
+        # Service/Website
+        self.serviceLabel = Label(self, text='Service/Website:', font=('Calibri',12))
+        self.serviceLabel.grid(row=2,sticky='w',padx=10,columnspan=2)
+        self.serviceEntry = Entry(self, width=35)
+        self.serviceEntry.grid(row=3,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
+        self.serviceEntry.insert(0,service)
+        self.serviceEntry.config(state=DISABLED)
+
+        # Username
+        self.unameLabel = Label(self, text='Username:', font=('Calibri',12))
+        self.unameLabel.grid(row=4,sticky='w',padx=10,columnspan=2)
+        self.uname = Entry(self, width=35)
+        self.uname.grid(row=5,padx=(30,0),pady=(0,10),columnspan=2,sticky='w')
+        self.uname.insert(0,username)
+        self.uname.config(state=DISABLED)
+
+        # Password
+        self.pwLabel = Label(self, text='Password:', font=('Calibri',12))
+        self.pwLabel.grid(row=6,sticky='w',padx=10,columnspan=2)
+        self.passTxt = Entry(self, width=28,show='\u2022') # show password as bullets
+        self.passTxt.grid(row=7,pady=(0,10),padx=(30,0),columnspan=2,sticky='w')
+        # Show password
+        self.copyBut = Button(self,text='Show', command=lambda:self.show(self.passTxt), width=5,bg='#ffff80',relief=GROOVE)
+        self.copyBut.grid(row=7,column=1,padx=(0,30),sticky='e')
+
+        # Seperator
+        self.line = Separator(self,orient='horizontal')
+        self.line.grid(row=8,sticky='we',columnspan=2)
+
+        # Cancel button
+        self.createAccBut = Button(self,text='Cancel', command=self.newEntryCancel, width=15,bg='#ffff80',relief=GROOVE)
+        self.createAccBut.grid(row=9,pady=10,padx=(20,0),sticky='w',columnspan=2)
+
+        # Enter button
+        self.loginBut = Button(self,text='Enter', command=lambda:self.editEntry(service,username,self.passTxt.get()), width=15,bg='#ffff80',relief=GROOVE)
+        self.loginBut.grid(row=9,column=1,pady=10,padx=(0,20),sticky='w')
+
+        self.parent.bind('<Return>', self.editEntry) # bind enter to button
+
+    def editEntry(self,service,username,password):
+        account = self.user
+        if service and username and password:
+            encryptedPassword = self.encryptPassword(password)
+            updateDB(account,service,username,encryptedPassword)
+        else:
+            if not password:
+                self.serviceLabel.config(fg='red')
+        self.loggedInUI()
+
 
 def main():
     root = tk.Tk()
