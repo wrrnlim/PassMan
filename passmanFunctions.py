@@ -5,6 +5,23 @@ if not os.path.exists('db'): # make folder if it does not exists
 
 database = 'db\passwords.db'
 
+def DBexist():
+    db = sqlite3.connect(database)
+    c = db.cursor()
+    # Check if db exists
+    try:
+        c.execute('''
+            SELECT *
+            FROM passwords
+            WHERE service = "MasterPassword"
+            LIMIT 1
+        ''')
+        row = c.fetchone()
+        if row:
+            return True
+        else: return False
+    except: return False
+
 def createDB():
     db = sqlite3.connect(database)
     c = db.cursor()

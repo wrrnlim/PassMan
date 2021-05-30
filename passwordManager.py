@@ -1,11 +1,11 @@
 #
 # Password Manager by Warren Lim
-version = '1.1.2'
+version = '2.0.0'
 
 # GUI inports
 import tkinter as tk
 from tkinter import Frame, Label, Entry, Button, BOTH, END, NORMAL, StringVar
-from tkinter.constants import DISABLED, GROOVE, SEL_LAST
+from tkinter.constants import DISABLED, GROOVE
 from tkinter.ttk import Combobox, Separator 
 from passmanFunctions import *
 import ctypes
@@ -68,6 +68,15 @@ class GUI(Frame):
         self.parent.bind('<Return>', self.loginEnter) # makes enter key press the login button
         self.loginBut.grid(row=7,column=1,pady=10,padx=(0,20),sticky='w')
 
+        # make database if not already made
+        self.after(80,self.firstTime)
+
+    def firstTime(self):
+        if not DBexist():
+            createDB()
+            ctypes.windll.user32.MessageBoxW(0, 'First time run detected. Please create a new account', 'Create New Account', 0x0)
+            self.newAccountUI()
+
     def loginEnter(self, event):
         # make enter key press Go button
         self.loginButton()
@@ -87,8 +96,7 @@ class GUI(Frame):
             # clear entries
             self.uname.delete(0, END) 
             self.password.delete(0, END) 
-            # make database if not already made
-            createDB()
+            
             # store/check master password
             status = checkMaster(uname,password)
             if status == -1: # record DNE
