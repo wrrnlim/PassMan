@@ -3,6 +3,12 @@
 
  Compiled with `pyinstaller --onedir -w -i img\keyicon.ico passwordManager.py`
 
+#### Login Screen
+ ![snapshot](img/snapshot-login.png) 
+
+#### Main Screen
+ ![snapshot](img/snapshot-main.png)
+
 ## Dependencies
  - cryptography (pip install cryptography)
 
