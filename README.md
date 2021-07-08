@@ -7,7 +7,7 @@
  - cryptography (pip install cryptography)
 
 ## Disclaimer
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)  
 This password manager was created as fun project to learn about encryption and GUIs, and is not meant to provide high end security for storing passwords. Storing important passwords and other sensitive data in this application is **NOT** recommended.
 
 ## Installation
