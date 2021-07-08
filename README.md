@@ -10,7 +10,7 @@
  ![snapshot](img/snapshot-main.png)
 
 ## Dependencies
- - cryptography (pip install cryptography)
+ - cryptography (`pip install cryptography`)
 
 ## Disclaimer
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/wrrnlim/PassMan/blob/main/LICENSE)  
