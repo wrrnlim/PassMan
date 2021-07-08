@@ -1,4 +1,5 @@
 # Password Manager by Warren Lim
+# Started on May 20, 2021
 
 version = '2.1.0'
 
