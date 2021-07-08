@@ -1,7 +1,9 @@
 # PassMan
  PassMan is a simple password manager that encrypts and stores passwords. It has a login system with mutiple account support, and has simple interface that allows users to add, delete, or alter stored passwords.
 
+<!--
  Compiled with `pyinstaller --onedir -w -i img\keyicon.ico passwordManager.py`
+-->
 
 #### Login Screen
  ![snapshot](img/snapshot-login.png) 
