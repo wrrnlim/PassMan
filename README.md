@@ -1,8 +1,16 @@
-# Password-Manager
- 
- Author: Warren Lim<br>
- Date: May 20, 2021<br>
- Compiled with pyinstaller --onedir -w -i img\keyicon.ico passwordManager.py
+# PassMan
+ PassMan is a simple password manager that encrypts and stores passwords. It has a login system with mutiple account support, and has simple interface that allows users to add, delete, or alter stored passwords.
 
- Dependencies
+ Author: Warren Lim
+ Date: May 20, 2021
+ Compiled with `pyinstaller --onedir -w -i img\keyicon.ico passwordManager.py`
+
+## Dependencies
  - cryptography (pip install cryptography)
+
+## Disclaimer
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+This password manager was created as fun project to learn about encryption and GUIs, and is not meant to provide high end security for storing passwords. Storing important passwords and other sensitive data in this application is **NOT** recommended.
+
+## Installation
+The installer for the newest release can be downloaded from the [releases](https://github.com/wrrnlim/PassMan/releases) page (the exe file). You can also run PassMan via source code, which requires dependencies installed on your machine.
