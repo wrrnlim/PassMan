@@ -1,5 +1,5 @@
 # PassMan
-![GitHub Release Date](https://img.shields.io/github/release-date/wrrnlim/PassMan)
+![status](https://img.shields.io/badge/status-complete-green) ![GitHub Release Date](https://img.shields.io/github/release-date/wrrnlim/PassMan)
 
 PassMan is a simple password manager that encrypts and stores passwords. It has a login system with mutiple account support, and has simple interface that allows users to add, delete, or alter stored passwords.
 
